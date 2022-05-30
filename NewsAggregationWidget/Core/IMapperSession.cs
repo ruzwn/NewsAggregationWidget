@@ -1,8 +1,7 @@
 ﻿using NewsAggregationWidget.Core.Entities;
 
-namespace NewsAggregationWidget;
+namespace NewsAggregationWidget.Core;
 
-// todo: create async methods ???
 public interface IMapperSession
 {
 	void BeginTransaction();
@@ -13,4 +12,9 @@ public interface IMapperSession
 	Task Delete(User entity);
 
 	IQueryable<User> Users { get; }
+
+	Task<Guid> SaveToken(RefreshToken token);
+	Task DeleteToken(RefreshToken token);
+
+	IQueryable<RefreshToken> Tokens { get; }
 }

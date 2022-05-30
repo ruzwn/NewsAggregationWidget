@@ -1,27 +1,36 @@
-﻿using NewsAggregationWidget.Models;
+﻿using System.Text.Json.Serialization;
+using NewsAggregationWidget.Models;
 
 namespace NewsAggregationWidget.Core.Entities;
 
 // This is an object(entity). We get it from the database and work with in all program?
-public class User : BaseEntity
+public class User
 {
+	public virtual Guid Id { get; set; }
 	public virtual string FirstName { get; set; }
 	public virtual string LastName { get; set; }
-	public virtual string? MiddleName { get; set; }
 	public virtual string UserName { get; set; }
 	public virtual string Email { get; set; }
+
+	[JsonIgnore]
 	public virtual string Password { get; set; } // todo: change string password to some hash
 
-	public User() { }
+	[JsonIgnore]
+	public virtual IList<RefreshToken> RefreshTokens { get; set; }
 
-	public User(UserModel model)
+	public User()
+	{
+		RefreshTokens = new List<RefreshToken>();
+	}
+
+	public User(RegisterUser model)
 	{
 		Id = Guid.NewGuid();
 		FirstName = model.FirstName;
 		LastName = model.LastName;
-		MiddleName = model.MiddleName;
 		UserName = model.UserName;
 		Email = model.Email;
 		Password = model.Password;
+		RefreshTokens = new List<RefreshToken>();
 	}
 }

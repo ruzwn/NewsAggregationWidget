@@ -1,8 +1,9 @@
 ﻿using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 using NewsAggregationWidget.Core.Entities;
+using NHibernate;
 
-namespace NewsAggregationWidget;
+namespace NewsAggregationWidget.Core;
 
 public static class NHibernateExtensions
 {
@@ -17,14 +18,26 @@ public static class NHibernateExtensions
 						.Database("news")
 						.Username("postgres")
 						.Password("postgres"))
-				.ShowSql()
 				.AdoNetBatchSize(5))
 			.Cache(cache => cache.UseQueryCache().UseMinimalPuts())
-			.Mappings(map => map.FluentMappings.AddFromAssemblyOf<User>())
+			.Mappings(map =>
+			{
+				map.FluentMappings.AddFromAssemblyOf<RefreshToken>();
+				map.FluentMappings.AddFromAssemblyOf<User>();
+			})
 			.BuildSessionFactory();
-		
+
 		services.AddSingleton(sessionFactory);
-		services.AddScoped(_ => sessionFactory.OpenSession());
+		services.AddScoped(serviceProvider =>
+		{
+			var interceptor = serviceProvider.GetService<IInterceptor>();
+
+			return sessionFactory
+				.OpenSession()
+				.SessionWithOptions()
+				.Interceptor(interceptor)
+				.OpenSession();
+		});
 		services.AddScoped<IMapperSession, NHibernateMapperSession>();
 
 		return services;

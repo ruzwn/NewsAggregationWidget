@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using NewsAggregationWidget.Core.Entities;
 
-namespace NewsAggregationWidget;
+namespace NewsAggregationWidget.Helpers;
 
 public static class UserHelper
 {

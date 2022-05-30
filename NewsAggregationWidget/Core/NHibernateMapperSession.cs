@@ -2,7 +2,7 @@
 using NHibernate;
 using ISession = NHibernate.ISession;
 
-namespace NewsAggregationWidget;
+namespace NewsAggregationWidget.Core;
 
 // Analogue of DbContext in EntityFramework
 public class NHibernateMapperSession : IMapperSession
@@ -43,7 +43,6 @@ public class NHibernateMapperSession : IMapperSession
 
 	public async Task<Guid> Save(User entity)
 	{
-		// await _session.SaveOrUpdateAsync(entity); - how it works?
 		if (_session.Contains(entity))
 		{
 			await _session.UpdateAsync(entity);
@@ -59,5 +58,27 @@ public class NHibernateMapperSession : IMapperSession
 	public async Task Delete(User entity)
 	{
 		await _session.DeleteAsync(entity);
+	}
+
+
+	public IQueryable<RefreshToken> Tokens => _session.Query<RefreshToken>();
+	
+	public async Task<Guid> SaveToken(RefreshToken token)
+	{
+		if (_session.Contains(token))
+		{
+			await _session.UpdateAsync(token);
+		}
+		else
+		{
+			await _session.SaveAsync(token);
+		}
+
+		return token.Id;
+	}
+
+	public async Task DeleteToken(RefreshToken token)
+	{
+		await _session.DeleteAsync(token);
 	}
 }
