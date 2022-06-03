@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -30,7 +29,7 @@ public class JwtUtils : IJwtUtils
 		var tokenDescriptor = new SecurityTokenDescriptor
 		{
 			Subject = new ClaimsIdentity(new[] {new Claim("id", user.Id.ToString())}),
-			Expires = DateTime.UtcNow.AddMinutes(15),
+			Expires = DateTime.UtcNow.AddMinutes(1),
 			SigningCredentials = new SigningCredentials(
 				new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
 		};

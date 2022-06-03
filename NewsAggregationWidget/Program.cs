@@ -39,7 +39,7 @@ app.UseCors(x => x
 	.AllowAnyHeader()
 	.AllowCredentials());
 
-//app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseRouting();
 

@@ -8,7 +8,7 @@ namespace NewsAggregationWidget.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("api/users")]
 public class UserController : ControllerBase
 {
 	private readonly IUserService _userService;
@@ -29,7 +29,7 @@ public class UserController : ControllerBase
 			return BadRequest(new {message = "Incorrect user or password"});
 		}
 		
-		SetTokenCookie(response.RefreshToken);
+		SetTokenCookie(response.JwtToken, response.RefreshToken);
 		
 		return Ok(response);
 	}
@@ -52,16 +52,19 @@ public class UserController : ControllerBase
 	[HttpPost("refresh-token")]
 	public IActionResult RefreshToken()
 	{
-		var refreshToken = Request.Cookies["refreshToken"];
+		// todo: use this api, when user have refresh token and access token expired
+		
+		var refreshToken = Request.Cookies["refresh_token"];
 
 		if (string.IsNullOrEmpty(refreshToken))
 		{
 			return BadRequest("You don't have refresht token");
 		}
 		
+		refreshToken = WebUtility.UrlDecode(refreshToken);
 		var response = _userService.RefreshToken(refreshToken, IpAddress());
 		
-		SetTokenCookie(response.RefreshToken);
+		SetTokenCookie(response.JwtToken, response.RefreshToken);
 		
 		return Ok(response);
 	}
@@ -70,17 +73,17 @@ public class UserController : ControllerBase
 	[HttpPost("revoke-token")]
 	public IActionResult RevokeToken(RevokeTokenRequest model)
 	{
-		var token = model.Token ?? Request.Cookies["refreshToken"];
+		var refreshToken = model.Token ?? Request.Cookies["refresh_token"];
 
-		if (string.IsNullOrEmpty(token))
+		if (string.IsNullOrEmpty(refreshToken))
 		{
 			return BadRequest(new {message = "Token is required"});
 		}
 
-		token = WebUtility.UrlDecode(token);
-		_userService.RevokeToken(token, IpAddress());
+		refreshToken = WebUtility.UrlDecode(refreshToken);
+		_userService.RevokeToken(refreshToken, IpAddress());
 		
-		return Ok(new { message = $"Token {token} revoked" });
+		return Ok(new { message = $"Token {refreshToken} revoked" });
 	}
 	
 	[HttpGet]
@@ -92,7 +95,7 @@ public class UserController : ControllerBase
 	}
 	
 	[HttpGet("{id:guid}")]
-	public IActionResult GetById([FromRoute] Guid id)
+	public IActionResult GetById(Guid id)
 	{
 		var user = _userService.GetById(id);
 
@@ -104,15 +107,20 @@ public class UserController : ControllerBase
 		return Ok(user);
 	}
 	
-	private void SetTokenCookie(string token)
+	private void SetTokenCookie(string accessToken, string refreshToken)
 	{
-		var cookieOptions = new CookieOptions
+		var accessTokenCookieOptions = new CookieOptions
+		{
+			Expires = DateTime.UtcNow.AddSeconds(10)
+		};
+		Response.Cookies.Append("access_token", accessToken, accessTokenCookieOptions);
+		
+		var refresthTokenCookieOptions = new CookieOptions
 		{
 			HttpOnly = true,
 			Expires = DateTime.UtcNow.AddDays(7)
 		};
-		
-		Response.Cookies.Append("refreshToken", token, cookieOptions);
+		Response.Cookies.Append("refresh_token", refreshToken, refresthTokenCookieOptions);
 	}
 
 	private string IpAddress()

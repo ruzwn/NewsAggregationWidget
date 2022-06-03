@@ -13,12 +13,21 @@ public class JwtMiddleware
 
 	public async Task Invoke(HttpContext context, IUserService userService, IJwtUtils jwtUtils)
 	{
-		var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-		var userId = jwtUtils.ValidateJwtToken(token);
+		// var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+		// var userId = jwtUtils.ValidateJwtToken(token);
+		// if (userId != null)
+		// {
+		// 	context.Items["User"] = userService.GetById(userId.Value);
+		// }
 
-		if (userId != null)
+		if (context.Request.Cookies.TryGetValue("access_token", out var token))
 		{
-			context.Items["User"] = userService.GetById(userId.Value);
+			var userId = jwtUtils.ValidateJwtToken(token);
+
+			if (userId != null)
+			{
+				context.Items["User"] = userService.GetById(userId.Value);
+			}
 		}
 
 		await _next(context);
