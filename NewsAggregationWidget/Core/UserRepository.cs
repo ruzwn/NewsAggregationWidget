@@ -29,42 +29,42 @@ public class UserRepository : INHibernateRepository
 		return result;
 	}
 
-	public async Task<Guid> Add(User user)
+	public Guid Add(User user)
 	{
 		_session.BeginTransaction();
-		var result = await _session.Save(user);
-		await _session.Commit();
+		var result = _session.SaveOrUpdate(user);
+		_session.Commit();
 		_session.CloseTransaction();
 
 		return result;
 	}
 
-	public async Task Update(User entity)
+	public void Update(User entity)
 	{
 		_session.BeginTransaction();
-		await _session.Save(entity);
-		await _session.Commit();
+		_session.SaveOrUpdate(entity);
+		_session.Commit();
 		_session.CloseTransaction();
 	}
 	
 	
 	// todo: separate this repo into 2 different repo (one for user and other for token) ???
 
-	public async Task<Guid> AddToken(RefreshToken token)
+	public Guid AddToken(RefreshToken token)
 	{
 		_session.BeginTransaction();
-		var result = await _session.SaveToken(token);
-		await _session.Commit();
+		var result = _session.SaveOrUpdateToken(token);
+		_session.Commit();
 		_session.CloseTransaction();
 
 		return result;
 	}
 
-	public async Task UpdateToken(RefreshToken token)
+	public void UpdateToken(RefreshToken token)
 	{
 		_session.BeginTransaction();
-		await _session.SaveToken(token);
-		await _session.Commit();
+		_session.SaveOrUpdateToken(token);
+		_session.Commit();
 		_session.CloseTransaction();
 	}
 }

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using NewsAggregationWidget.Authorization;
 using NewsAggregationWidget.Core;
 using NewsAggregationWidget.Helpers;
@@ -5,6 +6,8 @@ using NewsAggregationWidget.Logging;
 using NewsAggregationWidget.Services;
 using NHibernate;
 using NLog.Web;
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true); // NpqSql throwed error without it
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +19,8 @@ var services = builder.Services;
 
 services.AddNHibernate();
 services.AddCors();
-services.AddControllers();
+services.AddControllers()
+	.AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 
 services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 

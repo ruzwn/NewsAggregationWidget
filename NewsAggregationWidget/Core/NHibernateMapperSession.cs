@@ -14,7 +14,7 @@ public class NHibernateMapperSession : IMapperSession
 	{
 		_session = session;
 	}
-	
+
 	public IQueryable<User> Users => _session.Query<User>();
 
 	public void BeginTransaction()
@@ -22,14 +22,14 @@ public class NHibernateMapperSession : IMapperSession
 		_transaction = _session.BeginTransaction();
 	}
 
-	public async Task Commit()
+	public void Commit()
 	{
-		await _transaction.CommitAsync();
+		_transaction.Commit();
 	}
 
-	public async Task Rollback()
+	public void Rollback()
 	{
-		await _transaction.RollbackAsync();
+		_transaction.Rollback();
 	}
 
 	public void CloseTransaction()
@@ -41,44 +41,44 @@ public class NHibernateMapperSession : IMapperSession
 		}
 	}
 
-	public async Task<Guid> Save(User entity)
+	public Guid SaveOrUpdate(User entity)
 	{
 		if (_session.Contains(entity))
 		{
-			await _session.UpdateAsync(entity);
+			_session.Update(entity);
 		}
 		else
 		{
-			await _session.SaveAsync(entity);
+			_session.Save(entity);
 		}
 
 		return entity.Id;
 	}
 
-	public async Task Delete(User entity)
+	public void Delete(User entity)
 	{
-		await _session.DeleteAsync(entity);
+		_session.Delete(entity);
 	}
 
 
 	public IQueryable<RefreshToken> Tokens => _session.Query<RefreshToken>();
-	
-	public async Task<Guid> SaveToken(RefreshToken token)
+
+	public Guid SaveOrUpdateToken(RefreshToken token)
 	{
 		if (_session.Contains(token))
 		{
-			await _session.UpdateAsync(token);
+			_session.Update(token);
 		}
 		else
 		{
-			await _session.SaveAsync(token);
+			_session.Save(token);
 		}
 
 		return token.Id;
 	}
 
-	public async Task DeleteToken(RefreshToken token)
+	public void DeleteToken(RefreshToken token)
 	{
-		await _session.DeleteAsync(token);
+		_session.Delete(token);
 	}
 }

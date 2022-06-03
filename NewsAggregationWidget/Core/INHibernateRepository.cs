@@ -6,9 +6,9 @@ public interface INHibernateRepository
 {
 	IEnumerable<User> GetAll();
 	User GetById(Guid id);
-	Task<Guid> Add(User user);
-	Task Update(User user);
+	Guid Add(User user);
+	void Update(User user);
 
-	Task<Guid> AddToken(RefreshToken token);
-	Task UpdateToken(RefreshToken token);
+	Guid AddToken(RefreshToken token);
+	void UpdateToken(RefreshToken token);
 }

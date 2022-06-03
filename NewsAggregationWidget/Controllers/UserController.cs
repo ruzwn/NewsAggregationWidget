@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
 using NewsAggregationWidget.Authorization;
 using NewsAggregationWidget.Models;
 using NewsAggregationWidget.Services;
@@ -19,9 +20,9 @@ public class UserController : ControllerBase
 
 	[AllowAnonymous]
 	[HttpPost("authenticate")]
-	public async Task<IActionResult> Authenticate(AuthenticateRequest authModel)
+	public IActionResult Authenticate(AuthenticateRequest authModel)
 	{
-		var response = await _userService.Authenticate(authModel, IpAddress());
+		var response = _userService.Authenticate(authModel, IpAddress());
 
 		if (response == null)
 		{
@@ -35,9 +36,9 @@ public class UserController : ControllerBase
 	
 	[AllowAnonymous]
 	[HttpPost("register")]
-	public async Task<IActionResult> Register(RegisterUser registerUser)
+	public IActionResult Register(RegisterUser registerUser)
 	{
-		var response = await _userService.Register(registerUser, IpAddress());
+		var response = _userService.Register(registerUser, IpAddress());
 
 		if (response == null)
 		{
@@ -52,6 +53,12 @@ public class UserController : ControllerBase
 	public IActionResult RefreshToken()
 	{
 		var refreshToken = Request.Cookies["refreshToken"];
+
+		if (string.IsNullOrEmpty(refreshToken))
+		{
+			return BadRequest("You don't have refresht token");
+		}
+		
 		var response = _userService.RefreshToken(refreshToken, IpAddress());
 		
 		SetTokenCookie(response.RefreshToken);
@@ -59,6 +66,7 @@ public class UserController : ControllerBase
 		return Ok(response);
 	}
 
+	[AllowAnonymous]
 	[HttpPost("revoke-token")]
 	public IActionResult RevokeToken(RevokeTokenRequest model)
 	{
@@ -69,9 +77,10 @@ public class UserController : ControllerBase
 			return BadRequest(new {message = "Token is required"});
 		}
 
+		token = WebUtility.UrlDecode(token);
 		_userService.RevokeToken(token, IpAddress());
 		
-		return Ok(new { message = "Token revoked" });
+		return Ok(new { message = $"Token {token} revoked" });
 	}
 	
 	[HttpGet]

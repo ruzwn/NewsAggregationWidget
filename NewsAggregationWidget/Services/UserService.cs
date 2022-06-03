@@ -20,7 +20,7 @@ public class UserService : IUserService
 		_appSettings = appSettings.Value;
 	}
 
-	public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest authModel, string ipAddress)
+	public AuthenticateResponse Authenticate(AuthenticateRequest authModel, string ipAddress)
 	{
 		var user = _userRepository
 			.GetAll()
@@ -40,26 +40,24 @@ public class UserService : IUserService
 
 		RemoveOldRefreshTokens(user);
 
-		// todo: рефреш токен не сохраняется в БД !!!
+		// todo: должны ли использовать добавление токена вручную? или orm должна делать это сама (IList у user) 
 		
-		var tokenId = await _userRepository.AddToken(refreshToken);
-		Console.Write("RefreshToken id: ");
-		Console.WriteLine(tokenId.ToString());
-		await _userRepository.Update(user);
+		_userRepository.AddToken(refreshToken);
+		_userRepository.Update(user);
 
 		return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
 	}
 
-	public async Task<AuthenticateResponse> Register(RegisterUser model, string ipAddress)
+	public AuthenticateResponse Register(RegisterUser model, string ipAddress)
 	{
 		var user = new User(model);
 
-		var id = await _userRepository.Add(user);
+		_userRepository.Add(user);
 
 		var response = Authenticate(
 			new AuthenticateRequest {UserName = user.UserName, Password = user.Password}, ipAddress);
 
-		return await response;
+		return response;
 	}
 
 	public AuthenticateResponse RefreshToken(string token, string ipAddress)
@@ -84,8 +82,7 @@ public class UserService : IUserService
 		user.RefreshTokens.Add(newRefreshToken);
 		
 		RemoveOldRefreshTokens(user);
-
-		// todo: is update db will work correctly ???
+		
 		_userRepository.Update(user);
 		
 		var jwtToken = _jwtUtils.GenerateJwtToken(user);
@@ -120,7 +117,6 @@ public class UserService : IUserService
 
 	private void RemoveOldRefreshTokens(User user)
 	{
-		// can nhibernate automatic delete tokens when we delete from user's list in c#
 		// todo: how to fix .ToList() ???
 		user.RefreshTokens.ToList().RemoveAll(x =>
 			!x.IsActive &&
@@ -147,7 +143,6 @@ public class UserService : IUserService
 		return newRefreshToken;
 	}
 
-
 	private void RevokeDescendantRefreshTokens(
 		RefreshToken refreshToken, User user, string ipAddress, string reason)
 	{
@@ -168,12 +163,13 @@ public class UserService : IUserService
 		}
 	}
 
-	private static void RevokeRefreshToken(
+	private void RevokeRefreshToken(
 		RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null)
 	{
 		token.Revoked = DateTime.UtcNow;
 		token.RevokedByIp = ipAddress;
 		token.ReasonRevoked = reason;
 		token.ReplacedByToken = replacedByToken;
+		_userRepository.UpdateToken(token);
 	}
 }
