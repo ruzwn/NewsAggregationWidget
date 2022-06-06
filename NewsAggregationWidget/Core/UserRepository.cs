@@ -2,7 +2,7 @@
 
 namespace NewsAggregationWidget.Core;
 
-public class UserRepository : INHibernateRepository
+public class UserRepository : INHibernateRepository<User>
 {
 	private readonly IMapperSession _session;
 
@@ -18,52 +18,38 @@ public class UserRepository : INHibernateRepository
 
 	public User GetById(Guid id)
 	{
-		var result = _session.Users.FirstOrDefault(user => user.Id == id);
-		
-		if (result == null)
+		var user = _session.Users.FirstOrDefault(user => user.Id == id);
+
+		if (user == null)
 		{
-			// todo: add logger
-			return null;
+			// todo: log ...
 		}
 
-		return result;
+		return user;
 	}
 
-	public Guid Add(User user)
+	public Guid Add(User token)
 	{
 		_session.BeginTransaction();
-		var result = _session.SaveOrUpdate(user);
+		var id = _session.SaveOrUpdateUser(token);
 		_session.Commit();
 		_session.CloseTransaction();
 
-		return result;
+		return id;
 	}
 
-	public void Update(User entity)
+	public void Update(User token)
 	{
 		_session.BeginTransaction();
-		_session.SaveOrUpdate(entity);
+		_session.SaveOrUpdateUser(token);
 		_session.Commit();
 		_session.CloseTransaction();
 	}
-	
-	
-	// todo: separate this repo into 2 different repo (one for user and other for token) ???
 
-	public Guid AddToken(RefreshToken token)
+	public void Delete(User user)
 	{
 		_session.BeginTransaction();
-		var result = _session.SaveOrUpdateToken(token);
-		_session.Commit();
-		_session.CloseTransaction();
-
-		return result;
-	}
-
-	public void UpdateToken(RefreshToken token)
-	{
-		_session.BeginTransaction();
-		_session.SaveOrUpdateToken(token);
+		_session.DeleteUser(user);
 		_session.Commit();
 		_session.CloseTransaction();
 	}

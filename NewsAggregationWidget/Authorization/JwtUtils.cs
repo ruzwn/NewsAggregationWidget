@@ -12,13 +12,12 @@ namespace NewsAggregationWidget.Authorization;
 
 public class JwtUtils : IJwtUtils
 {
-	private readonly INHibernateRepository _repository;
+	private readonly INHibernateRepository<User> _userRepository;
 	private readonly AppSettings _appSettings;
-	// private readonly ILogger _logger;
 
-	public JwtUtils(INHibernateRepository repository, IOptions<AppSettings> appSettings)
+	public JwtUtils(INHibernateRepository<User> userRepository, IOptions<AppSettings> appSettings)
 	{
-		_repository = repository;
+		_userRepository = userRepository;
 		_appSettings = appSettings.Value;
 	}
 
@@ -29,7 +28,7 @@ public class JwtUtils : IJwtUtils
 		var tokenDescriptor = new SecurityTokenDescriptor
 		{
 			Subject = new ClaimsIdentity(new[] {new Claim("id", user.Id.ToString())}),
-			Expires = DateTime.UtcNow.AddMinutes(1),
+			Expires = DateTime.UtcNow.AddMinutes(20),
 			SigningCredentials = new SigningCredentials(
 				new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
 		};
@@ -88,7 +87,7 @@ public class JwtUtils : IJwtUtils
 			while (true)
 			{
 				var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-				var tokenIsUnique = !_repository.GetAll().Any(u => u.RefreshTokens.Any(t => t.Token == token));
+				var tokenIsUnique = !_userRepository.GetAll().Any(u => u.RefreshTokens.Any(t => t.Token == token));
 
 				if (!tokenIsUnique)
 				{

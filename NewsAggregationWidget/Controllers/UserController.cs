@@ -52,7 +52,7 @@ public class UserController : ControllerBase
 	[HttpPost("refresh-token")]
 	public IActionResult RefreshToken()
 	{
-		// todo: use this api, when user have refresh token and access token expired
+		//  todo: use this api, when user have refresh token and access token expired
 		
 		var refreshToken = Request.Cookies["refresh_token"];
 
@@ -111,7 +111,7 @@ public class UserController : ControllerBase
 	{
 		var accessTokenCookieOptions = new CookieOptions
 		{
-			Expires = DateTime.UtcNow.AddSeconds(10)
+			Expires = DateTime.UtcNow.AddMinutes(20)
 		};
 		Response.Cookies.Append("access_token", accessToken, accessTokenCookieOptions);
 		

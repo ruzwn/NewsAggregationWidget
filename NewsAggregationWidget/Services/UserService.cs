@@ -9,15 +9,29 @@ namespace NewsAggregationWidget.Services;
 
 public class UserService : IUserService
 {
-	private readonly INHibernateRepository _userRepository;
+	private readonly INHibernateRepository<User> _userRepository;
+	private readonly INHibernateRepository<RefreshToken> _tokenRepository;
 	private readonly IJwtUtils _jwtUtils;
 	private readonly AppSettings _appSettings;
 
-	public UserService(INHibernateRepository repository, IJwtUtils jwtUtils, IOptions<AppSettings> appSettings)
+	public UserService(INHibernateRepository<User> userRepository,
+		INHibernateRepository<RefreshToken> tokenRepository,
+		IJwtUtils jwtUtils, IOptions<AppSettings> appSettings)
 	{
-		_userRepository = repository;
+		_userRepository = userRepository;
+		_tokenRepository = tokenRepository;
 		_jwtUtils = jwtUtils;
 		_appSettings = appSettings.Value;
+	}
+	
+	public User GetById(Guid id)
+	{
+		return _userRepository.GetById(id);
+	}
+	
+	public IEnumerable<User> GetAll()
+	{
+		return _userRepository.GetAll();
 	}
 
 	public AuthenticateResponse Authenticate(AuthenticateRequest authModel, string ipAddress)
@@ -33,8 +47,7 @@ public class UserService : IUserService
 
 		var jwtToken = _jwtUtils.GenerateJwtToken(user);
 		var refreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
-
-		refreshToken.UserId = user.Id;
+		
 		refreshToken.User = user;
 		user.RefreshTokens.Add(refreshToken);
 
@@ -42,7 +55,7 @@ public class UserService : IUserService
 
 		// todo: должны ли использовать добавление токена вручную? или orm должна делать это сама (IList у user) 
 		
-		_userRepository.AddToken(refreshToken);
+		_tokenRepository.Add(refreshToken);
 		_userRepository.Update(user);
 
 		return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
@@ -105,16 +118,6 @@ public class UserService : IUserService
 		_userRepository.Update(user);
 	}
 
-	public IEnumerable<User> GetAll()
-	{
-		return _userRepository.GetAll();
-	}
-
-	public User GetById(Guid id)
-	{
-		return _userRepository.GetById(id);
-	}
-
 	private void RemoveOldRefreshTokens(User user)
 	{
 		// todo: how to fix .ToList() ???
@@ -170,6 +173,6 @@ public class UserService : IUserService
 		token.RevokedByIp = ipAddress;
 		token.ReasonRevoked = reason;
 		token.ReplacedByToken = replacedByToken;
-		_userRepository.UpdateToken(token);
+		_tokenRepository.Update(token);
 	}
 }

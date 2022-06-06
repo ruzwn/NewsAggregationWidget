@@ -9,9 +9,9 @@ public class RefreshToken
 	[Key]
 	[JsonIgnore]
 	public virtual Guid Id { get; set; }
-	
+
 	[JsonIgnore]
-	public virtual Guid UserId { get; set; }
+	public virtual Guid UserId => User.Id;
 
 	[JsonIgnore]
 	public virtual User User { get; set; }

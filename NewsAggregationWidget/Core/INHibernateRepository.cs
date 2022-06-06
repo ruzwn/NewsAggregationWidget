@@ -1,14 +1,10 @@
-﻿using NewsAggregationWidget.Core.Entities;
+﻿namespace NewsAggregationWidget.Core;
 
-namespace NewsAggregationWidget.Core;
-
-public interface INHibernateRepository
+public interface INHibernateRepository<T> where T : class
 {
-	IEnumerable<User> GetAll();
-	User GetById(Guid id);
-	Guid Add(User user);
-	void Update(User user);
-
-	Guid AddToken(RefreshToken token);
-	void UpdateToken(RefreshToken token);
+	IEnumerable<T> GetAll();
+	T GetById(Guid id);
+	Guid Add(T entity);
+	void Update(T entity);
+	void Delete(T entity);
 }

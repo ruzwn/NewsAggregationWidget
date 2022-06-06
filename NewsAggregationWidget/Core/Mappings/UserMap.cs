@@ -16,6 +16,7 @@ public class UserMap : ClassMap<User>
 		Map(user => user.Email).Column("email"); // из-за того, что забыл смаппить email, кидало ошибку
 		Map(user => user.Password).Column("password");
 		HasMany(x => x.RefreshTokens).Inverse().Cascade.All();
+		HasMany(x => x.NewsList).Inverse().Cascade.All();
 
 		Table("users");
 	}

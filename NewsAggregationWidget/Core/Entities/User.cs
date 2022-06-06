@@ -18,9 +18,13 @@ public class User
 	[JsonIgnore]
 	public virtual IList<RefreshToken> RefreshTokens { get; set; }
 
+	[JsonIgnore] 
+	public virtual IList<News> NewsList { get; set; }
+
 	public User()
 	{
 		RefreshTokens = new List<RefreshToken>();
+		NewsList = new List<News>();
 	}
 
 	public User(RegisterUser model)
@@ -32,5 +36,6 @@ public class User
 		Email = model.Email;
 		Password = model.Password;
 		RefreshTokens = new List<RefreshToken>();
+		NewsList = new List<News>();
 	}
 }

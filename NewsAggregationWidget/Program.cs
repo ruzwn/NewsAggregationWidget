@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using NewsAggregationWidget.Authorization;
 using NewsAggregationWidget.Core;
+using NewsAggregationWidget.Core.Entities;
 using NewsAggregationWidget.Helpers;
 using NewsAggregationWidget.Logging;
 using NewsAggregationWidget.Services;
@@ -11,9 +12,9 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true); // NpqSql th
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.ClearProviders();
-builder.Logging.SetMinimumLevel(LogLevel.Trace);
-builder.Host.UseNLog();
+// builder.Logging.ClearProviders();
+// builder.Logging.SetMinimumLevel(LogLevel.Trace);
+// builder.Host.UseNLog();
 
 var services = builder.Services;
 
@@ -25,9 +26,13 @@ services.AddControllers()
 services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
 services.AddScoped<IInterceptor, SqlLogInterceptor>();
-services.AddScoped<INHibernateRepository, UserRepository>();
 services.AddScoped<IJwtUtils, JwtUtils>();
 services.AddScoped<IUserService, UserService>();
+services.AddScoped<INewsService, NewsService>();
+
+services.AddScoped<INHibernateRepository<User>, UserRepository>();
+services.AddScoped<INHibernateRepository<RefreshToken>, TokenRepository>();
+services.AddScoped<INHibernateRepository<News>, NewsRepository>();
 
 services.AddSwaggerGen();
 
@@ -39,7 +44,7 @@ app.UseCors(x => x
 	.AllowAnyHeader()
 	.AllowCredentials());
 
-app.UseMiddleware<ErrorHandlerMiddleware>();
+// app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseRouting();
 
@@ -49,5 +54,7 @@ app.UseEndpoints(routeBuilder => routeBuilder.MapControllers());
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+//app.UseHttpsRedirection();
 
 app.Run();
